@@ -1,0 +1,76 @@
+name: Grab Oracle server
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes (GitHub sometimes runs these a bit late)
+  workflow_dispatch:         # lets you start a run by hand from the Actions tab
+
+permissions:
+  contents: read
+  issues: write    # to open an issue when a server is created
+  actions: write   # to switch this workflow off after that
+
+concurrency:
+  group: grab
+  cancel-in-progress: false
+
+jobs:
+  grab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the Oracle CLI
+        run: pip install -r requirements.txt
+
+      - name: Set up the Oracle login
+        env:
+          OCI_CONFIG: ${{ secrets.OCI_CONFIG }}
+          OCI_KEY: ${{ secrets.OCI_KEY }}
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: |
+          if [ -z "$OCI_CONFIG" ] || [ -z "$OCI_KEY" ] || [ -z "$SSH_PUBLIC_KEY" ]; then
+            echo "Missing a secret: add OCI_CONFIG, OCI_KEY and SSH_PUBLIC_KEY in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          mkdir -p ~/.oci ~/.ssh
+          printf '%s\n' "$OCI_CONFIG" | tr -d '\r' > ~/.oci/config
+          printf '%s\n' "$OCI_KEY" | tr -d '\r' > ~/.oci/oci_api_key.pem
+          printf '%s\n' "$SSH_PUBLIC_KEY" | tr -d '\r' > ~/.ssh/id_ed25519.pub
+          # Whatever key_file path the config had, point it at the key written above.
+          sed -i 's|^key_file[[:space:]]*=.*|key_file=~/.oci/oci_api_key.pem|' ~/.oci/config
+          chmod 600 ~/.oci/config ~/.oci/oci_api_key.pem
+          # Hide the account IDs from this public log.
+          for id in $(grep -oE 'ocid1\.[a-z]+\.oc1\.[^[:space:]]*' ~/.oci/config); do
+            echo "::add-mask::$id"
+          done
+
+      - name: Ask Oracle for a server
+        id: grab
+        env:
+          ONCE: "1"
+          OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
+        run: |
+          set +e
+          # Blank out any Oracle IDs before they reach the public log.
+          bash oci-grab.sh 2>&1 | sed -E 's/ocid1\.[A-Za-z0-9._-]+/ocid1.(hidden)/g'
+          code=${PIPESTATUS[0]}
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          # 0 = got one, 3 = nothing free yet (a normal, green run), anything else = a real problem
+          if [ "$code" -ne 0 ] && [ "$code" -ne 3 ]; then exit "$code"; fi
+
+      - name: Got one — open an issue and stop trying
+        if: steps.grab.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Oracle server is ready" \
+            --body "The \`hearth\` server exists now, so this workflow has switched itself off. Its public IP is in the Oracle console under Compute → Instances → hearth. Log in with \`ssh ubuntu@<that IP>\`."
+          gh workflow disable grab.yml
