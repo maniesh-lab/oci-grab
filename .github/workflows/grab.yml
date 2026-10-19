@@ -2,7 +2,7 @@ name: Grab Oracle server
 
 on:
   schedule:
-    - cron: "3-59/10 * * * *"   # every 10 minutes at :03, :13, :23… (avoids the busy top of the hour)
+    - cron: "4-59/10 * * * *"   # every 10 minutes at :03, :13, :23… (avoids the busy top of the hour)
   workflow_dispatch:         # lets you start a run by hand from the Actions tab
 
 permissions:
