@@ -52,3 +52,7 @@ doesn't print it, or any Oracle IDs, because this repo is public.
 bash oci-grab.sh           # keeps trying every ~2 minutes until it gets one
 ONCE=1 bash oci-grab.sh    # one try per shape, then exits
 ```
+
+## Author
+
+**Manish Pandeya** · [github.com/maniesh-lab](https://github.com/maniesh-lab)
