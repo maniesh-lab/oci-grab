@@ -2,7 +2,7 @@ name: Grab Oracle server
 
 on:
   schedule:
-    - cron: "4-59/10 * * * *"   # every 10 minutes at :03, :13, :23… (avoids the busy top of the hour)
+    - cron: "4-59/10 * * * *"   # every 10 minutes at :04, :14, :24… (backup — cron-job.org is what actually starts it, see README)
   workflow_dispatch:         # lets you start a run by hand from the Actions tab
 
 permissions:
