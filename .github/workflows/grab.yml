@@ -72,5 +72,5 @@ jobs:
         run: |
           gh issue create \
             --title "Oracle server is ready" \
-            --body "The \`hearth\` server exists now, so this workflow has switched itself off. Its public IP is in the Oracle console under Compute → Instances → hearth. Log in with \`ssh ubuntu@<that IP>\`."
+            --body "@maniesh-lab The \`hearth\` server exists now, so this workflow has switched itself off. Its public IP is in the Oracle console under Compute → Instances → hearth. Log in with \`ssh ubuntu@<that IP>\`."
           gh workflow disable grab.yml
