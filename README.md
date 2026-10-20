@@ -5,6 +5,8 @@ is to keep asking until one frees up. This repo does the asking for me: every 10
 minutes a GitHub Actions workflow runs `oci-grab.sh`, and once the server exists
 it opens an issue and switches itself off.
 
+**Status:** it got the server on 19 Oct 2026, so the workflow is switched off now.
+
 ## What it asks for
 - **Ampere A1** (1 OCPU, 6 GB, ARM) with Ubuntu 24.04, or
 - **AMD E2.1.Micro** (1 GB, x86) with Ubuntu 24.04
@@ -46,6 +48,14 @@ emails me) and disables the workflow. After that, delete the cron-job.org job,
 since it would only keep hitting a disabled workflow.
 The public IP is in the Oracle console (Compute → Instances → hearth). The log
 doesn't print it, or any Oracle IDs, because this repo is public.
+
+## Known Limitations
+- It only tries the first availability domain in your region. In a region with
+  more than one, the others are never asked
+- It looks for the network and creates the server in the root compartment
+  (the tenancy), not in a sub-compartment
+- The server name (`hearth`) and network name (`hearth-vcn`) are set at the top
+  of `oci-grab.sh`, so change them there for a different setup
 
 ## Running it on a laptop instead
 ```bash
