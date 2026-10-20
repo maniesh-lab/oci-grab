@@ -49,6 +49,12 @@ since it would only keep hitting a disabled workflow.
 The public IP is in the Oracle console (Compute → Instances → hearth). The log
 doesn't print it, or any Oracle IDs, because this repo is public.
 
+## Running it on a laptop instead
+```bash
+bash oci-grab.sh           # keeps trying every ~2 minutes until it gets one
+ONCE=1 bash oci-grab.sh    # one try per shape, then exits
+```
+
 ## Known Limitations
 - It only tries the first availability domain in your region. In a region with
   more than one, the others are never asked
@@ -56,12 +62,6 @@ doesn't print it, or any Oracle IDs, because this repo is public.
   (the tenancy), not in a sub-compartment
 - The server name (`hearth`) and network name (`hearth-vcn`) are set at the top
   of `oci-grab.sh`, so change them there for a different setup
-
-## Running it on a laptop instead
-```bash
-bash oci-grab.sh           # keeps trying every ~2 minutes until it gets one
-ONCE=1 bash oci-grab.sh    # one try per shape, then exits
-```
 
 ## Author
 
